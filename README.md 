@@ -1,0 +1,6 @@
+# Commission Fee Calculator
+
+## How to run the system
+
+```bash
+yarn start <path_to_input_file>

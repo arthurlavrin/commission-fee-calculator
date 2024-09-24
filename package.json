@@ -1,0 +1,34 @@
+{
+  "name": "commissions_calculator",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Commission fee calculation system using dynamic API configurations",
+  "main": "src/app.ts",
+  "author": "Artur Lavrin",
+  "license": "MIT",
+  "scripts": {
+    "start": "tsx src/app.ts",
+    "lint": "eslint src",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --check .",
+    "format:fix": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^22.6.1",
+    "@typescript-eslint/eslint-plugin": "^8.7.0",
+    "@typescript-eslint/parser": "^8.7.0",
+    "eslint": "^8",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-import": "^2.30.0",
+    "prettier": "^3.3.3",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.19.1",
+    "typescript": "5.5.2"
+  },
+  "dependencies": {
+    "@eslint/eslintrc": "^3.1.0",
+    "@eslint/js": "^9.11.1",
+    "node-fetch": "^3.3.2"
+  }
+}
