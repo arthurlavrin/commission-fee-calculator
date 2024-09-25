@@ -1,5 +1,5 @@
 {
-  "name": "commissions_calculator",
+  "name": "commission_fee_calculator",
   "version": "1.0.0",
   "type": "module",
   "description": "Commission fee calculation system using dynamic API configurations",
@@ -8,12 +8,25 @@
   "license": "MIT",
   "scripts": {
     "start": "tsx src/app.ts",
+    "start:mock": "yarn start ./input.json",
     "lint": "eslint src",
     "type-check": "tsc --noEmit",
     "format": "prettier --check .",
-    "format:fix": "prettier --write ."
+    "format:fix": "prettier --write .",
+    "test": "jest --passWithNoTests",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "prepare": "husky install"
+  },
+  "lint-staged": {
+    "*.{js,ts}": [
+      "eslint --fix",
+      "prettier --write",
+      "yarn type-check"
+    ]
   },
   "devDependencies": {
+    "@types/jest": "^29.5.13",
     "@types/node": "^22.6.1",
     "@typescript-eslint/eslint-plugin": "^8.7.0",
     "@typescript-eslint/parser": "^8.7.0",
@@ -21,7 +34,12 @@
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-import": "^2.30.0",
+    "husky": "^8.0.0",
+    "jest": "^29.7.0",
+    "jest-fetch-mock": "^3.0.3",
+    "lint-staged": "^15.2.10",
     "prettier": "^3.3.3",
+    "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.1",
     "typescript": "5.5.2"
@@ -29,6 +47,7 @@
   "dependencies": {
     "@eslint/eslintrc": "^3.1.0",
     "@eslint/js": "^9.11.1",
+    "dotenv": "^16.4.5",
     "node-fetch": "^3.3.2"
   }
 }

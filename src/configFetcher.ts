@@ -1,52 +1,83 @@
 import fetch from 'node-fetch';
 import {
   CashInConfig,
+  CashInOperationConfig,
   CashOutJuridicalConfig,
+  CashOutLegalOperationConfig,
   CashOutNaturalConfig,
+  CashOutNaturalOperationConfig,
 } from './types';
+import { commissionFeesConfigApi } from './api';
 
-// API Endpoints
-const CASH_IN_API = 'https://developers.paysera.com/tasks/api/cash-in';
-const CASH_OUT_NATURAL_API =
-  'https://developers.paysera.com/tasks/api/cash-out-natural';
-const CASH_OUT_JURIDICAL_API =
-  'https://developers.paysera.com/tasks/api/cash-out-juridical';
+const fetchWithHandling = async <T>(url: string): Promise<T> => {
+  try {
+    const response = await fetch(url);
 
-// Fetch Cash In Configuration
-export const fetchCashInConfig = async (): Promise<{
-  percents: number;
-  maxAmount: number;
-}> => {
-  const response = await fetch(CASH_IN_API);
-  const config = (await response.json()) as CashInConfig;
+    if (!response.ok) {
+      // noinspection ExceptionCaughtLocallyJS
+      throw new Error(
+        `Failed to fetch data from ${url}: ${response.statusText}`,
+      );
+    }
+
+    return (await response.json()) as T;
+  } catch (error) {
+    console.error(`Error fetching data from ${url}:`, error);
+    throw error;
+  }
+};
+
+export const fetchCashInConfig = async (): Promise<CashInOperationConfig> => {
+  const config = await fetchWithHandling<CashInConfig>(
+    commissionFeesConfigApi.cashInUrl,
+  );
   return {
-    percents: config.percents / 100,
+    rate: config.percents / 100,
     maxAmount: config.max.amount,
   };
 };
 
-// Fetch Cash Out Natural Configuration
-export const fetchCashOutNaturalConfig = async (): Promise<{
-  percents: number;
-  weekLimit: number;
-}> => {
-  const response = await fetch(CASH_OUT_NATURAL_API);
-  const config = (await response.json()) as CashOutNaturalConfig;
-  return {
-    percents: config.percents / 100,
-    weekLimit: config.week_limit.amount,
+export const fetchCashOutNaturalConfig =
+  async (): Promise<CashOutNaturalOperationConfig> => {
+    const config = await fetchWithHandling<CashOutNaturalConfig>(
+      commissionFeesConfigApi.cashOutNaturalUrl,
+    );
+    return {
+      rate: config.percents / 100,
+      weekLimit: config.week_limit.amount,
+    };
   };
-};
 
-// Fetch Cash Out Legal Configuration
-export const fetchCashOutLegalConfig = async (): Promise<{
-  percents: number;
-  minAmount: number;
-}> => {
-  const response = await fetch(CASH_OUT_JURIDICAL_API);
-  const config = (await response.json()) as CashOutJuridicalConfig;
-  return {
-    percents: config.percents / 100,
-    minAmount: config.min.amount,
+export const fetchCashOutLegalConfig =
+  async (): Promise<CashOutLegalOperationConfig> => {
+    const config = await fetchWithHandling<CashOutJuridicalConfig>(
+      commissionFeesConfigApi.cashOutJuridicalUrl,
+    );
+    return {
+      rate: config.percents / 100,
+      minAmount: config.min.amount,
+    };
   };
+
+export const fetchAllConfigs = async (): Promise<{
+  cashInConfig: CashInOperationConfig;
+  cashOutNaturalConfig: CashOutNaturalOperationConfig;
+  cashOutLegalConfig: CashOutLegalOperationConfig;
+}> => {
+  try {
+    const [cashInConfig, cashOutNaturalConfig, cashOutLegalConfig]: [
+      CashInOperationConfig,
+      CashOutNaturalOperationConfig,
+      CashOutLegalOperationConfig,
+    ] = await Promise.all([
+      fetchCashInConfig(),
+      fetchCashOutNaturalConfig(),
+      fetchCashOutLegalConfig(),
+    ]);
+
+    return { cashInConfig, cashOutNaturalConfig, cashOutLegalConfig };
+  } catch (error) {
+    console.error('Error fetching all configs:', error);
+    throw error;
+  }
 };

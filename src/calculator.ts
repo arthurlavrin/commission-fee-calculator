@@ -1,66 +1,47 @@
 import {
-  CashInOperationConfig,
   CashOutHistory,
-  CashOutLegalOperationConfig,
-  CashOutNaturalOperationConfig,
   InputData,
+  OperationConfig,
+  ProcessedOperationResult,
 } from './types';
+import { fetchAllConfigs } from './configFetcher';
 import {
-  fetchCashInConfig,
-  fetchCashOutNaturalConfig,
-  fetchCashOutLegalConfig,
-} from './configFetcher';
-import { getWeekNumber, roundUp } from './utils';
+  getCashInConfig,
+  getCashOutConfig,
+  getWeekNumber,
+  handleCashInOperation,
+  handleCashOutOperation,
+  isCashInOperation,
+  isCashOutOperation,
+  validateCashInConfig,
+  validateCashOutConfig,
+} from './helpers';
 
-const processOperation = (
+export const processOperation = (
   operation: InputData,
-  cashOutHistory: CashOutHistory,
-  cashInConfig: CashInOperationConfig | null,
-  cashOutConfig:
-    | CashOutNaturalOperationConfig
-    | CashOutLegalOperationConfig
-    | null,
-): { fee: number; updatedHistory: CashOutHistory } => {
-  const date = new Date(operation.date);
-  const week = getWeekNumber(date);
-  let fee = 0;
+  { cashOutHistory, cashInConfig, cashOutConfig, week }: OperationConfig,
+): ProcessedOperationResult => {
+  const validatedCashInConfig = validateCashInConfig(operation, cashInConfig);
+  const validatedCashOutConfig = validateCashOutConfig(
+    operation,
+    cashOutConfig,
+  );
 
-  if (operation.type === 'cash_in' && cashInConfig) {
-    const cashInFee = operation.operation.amount * cashInConfig.percents;
-    fee = roundUp(Math.min(cashInFee, cashInConfig.maxAmount));
-    return { fee, updatedHistory: cashOutHistory };
+  if (isCashInOperation(operation)) {
+    return handleCashInOperation(
+      operation,
+      validatedCashInConfig,
+      cashOutHistory,
+    );
   }
 
-  if (operation.type === 'cash_out' && cashOutConfig) {
-    if (operation.user_type === 'natural' && 'weekLimit' in cashOutConfig) {
-      const userHistory = cashOutHistory[operation.user_id] || {};
-      const weeklyTotal = userHistory[week] || 0;
-      const freeAmount = Math.max(cashOutConfig.weekLimit - weeklyTotal, 0);
-      const chargeableAmount = Math.max(
-        operation.operation.amount - freeAmount,
-        0,
-      );
-      fee = roundUp(chargeableAmount * cashOutConfig.percents);
-
-      const updatedHistory = {
-        ...cashOutHistory,
-        [operation.user_id]: {
-          ...userHistory,
-          [week]: (userHistory[week] || 0) + operation.operation.amount,
-        },
-      };
-      return { fee, updatedHistory };
-    }
-
-    if (operation.user_type === 'juridical' && 'minAmount' in cashOutConfig) {
-      fee = roundUp(
-        Math.max(
-          operation.operation.amount * cashOutConfig.percents,
-          cashOutConfig.minAmount,
-        ),
-      );
-      return { fee, updatedHistory: cashOutHistory };
-    }
+  if (isCashOutOperation(operation)) {
+    return handleCashOutOperation(
+      operation,
+      validatedCashOutConfig,
+      cashOutHistory,
+      week,
+    );
   }
 
   throw new Error(`Unsupported operation type: ${operation.type}`);
@@ -71,42 +52,37 @@ export const calculateCommissions = async (
 ): Promise<string[]> => {
   let cashOutHistory: CashOutHistory = {};
 
-  const [cashInConfig, cashOutNaturalConfig, cashOutLegalConfig] =
-    await Promise.all([
-      fetchCashInConfig(),
-      fetchCashOutNaturalConfig(),
-      fetchCashOutLegalConfig(),
-    ]);
+  try {
+    const { cashInConfig, cashOutNaturalConfig, cashOutLegalConfig } =
+      await fetchAllConfigs();
 
-  return data.map((operation) => {
-    let configForCashOut:
-      | CashOutNaturalOperationConfig
-      | CashOutLegalOperationConfig
-      | null = null;
+    return data.map((operation) => {
+      const week = getWeekNumber(new Date(operation.date));
 
-    if (operation.type === 'cash_out') {
-      if (operation.user_type === 'natural') {
-        configForCashOut =
-          cashOutNaturalConfig as CashOutNaturalOperationConfig;
-      } else if (operation.user_type === 'juridical') {
-        configForCashOut = cashOutLegalConfig as CashOutLegalOperationConfig;
-      }
-    }
+      const configForCashOut = getCashOutConfig(operation, {
+        cashOutNaturalConfig,
+        cashOutLegalConfig,
+      });
 
-    const cashInConfigForOperation: CashInOperationConfig | null =
-      operation.type === 'cash_in'
-        ? (cashInConfig as CashInOperationConfig)
-        : null;
+      const cashInConfigForOperation = getCashInConfig(operation, cashInConfig);
 
-    const { fee, updatedHistory } = processOperation(
-      operation,
-      cashOutHistory,
-      cashInConfigForOperation,
-      configForCashOut,
-    );
+      const operationConfig: OperationConfig = {
+        cashOutHistory,
+        cashInConfig: cashInConfigForOperation,
+        cashOutConfig: configForCashOut,
+        week,
+      };
 
-    cashOutHistory = updatedHistory;
+      const { fee, updatedHistory } = processOperation(
+        operation,
+        operationConfig,
+      );
+      cashOutHistory = updatedHistory;
 
-    return fee.toFixed(2);
-  });
+      return fee.toFixed(2);
+    });
+  } catch (error) {
+    console.error('Error calculating commissions:', error);
+    throw error;
+  }
 };
