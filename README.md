@@ -7,10 +7,11 @@ The Commission Fee Calculator calculates commission fees for cash-in and cash-ou
 **Note**: All references to third-party services or systems, including the endpoints from which the commission fee configurations are fetched, have been generalized to comply with guidelines. No specific service names are used in the codebase, documentation, or configuration.
 
 **Commission Fees**
+
 - Cash-in operations:
   - Commission fee: 0.03% of the total amount, but no more than 5.00 EUR.
-  
 - Cash-out operations:
+
   - Natural persons:
     - Commission fee: 0.3% of the cash-out amount.
     - 1000 EUR per week is free of charge. Commission applies only to amounts exceeding 1000 EUR.
@@ -20,6 +21,7 @@ The Commission Fee Calculator calculates commission fees for cash-in and cash-ou
 - Rounding: All commission fees are rounded up to the nearest cent.
 
 **Dependencies**
+
 - Node.js
 - TypeScript and related tools
 - ESLint for code linting
@@ -30,6 +32,7 @@ The Commission Fee Calculator calculates commission fees for cash-in and cash-ou
 
 1. Install dependencies:
    Make sure to install the required dependencies by running:
+
    ```bash
    yarn install
    ```
@@ -38,17 +41,20 @@ The Commission Fee Calculator calculates commission fees for cash-in and cash-ou
    Before running the application, create a `.env` file at the root of your project and define the `API_BASE_URL` environment variable that holds the base URL for the commission fee API.
 
    Example `.env` file:
+
    ```
    API_BASE_URL=https://example.com/api
    ```
 
 3. Run the commission fee calculator:
    Use the following command to run the system with an input JSON file:
+
    ```bash
    yarn start <path-to-input-json>
    ```
 
    Example:
+
    ```bash
    yarn start ./input.json
    ```
@@ -72,11 +78,13 @@ To run the system with a mocked input file, follow these steps:
 You can run the system's unit tests using the following commands:
 
 - Run all tests:
+
   ```bash
   yarn test
   ```
 
 - Run tests in watch mode:
+
   ```bash
   yarn test:watch
   ```
@@ -93,11 +101,13 @@ To maintain code quality, pre-commit hooks using Husky and `lint-staged` ensure 
 **Running Prettier, ESLint, and TypeScript Checks Manually**
 
 - Format code with Prettier:
+
   ```bash
   yarn format:fix
   ```
 
 - Run ESLint for linting:
+
   ```bash
   yarn lint
   ```
@@ -130,6 +140,7 @@ Unit tests cover key areas such as fee calculations, config fetching, and error 
 **Input Data Format**
 
 Input data is provided in a JSON file. Each entry represents an operation with the following structure:
+
 ```json
 {
   "date": "2016-01-05",
@@ -152,4 +163,3 @@ Input data is provided in a JSON file. Each entry represents an operation with t
 **Output**
 
 The program outputs the calculated commission fees for each operation, one per line, without specifying the currency.
-

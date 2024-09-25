@@ -13,13 +13,11 @@ import {
   calculateCashOutNaturalFee,
 } from './feeCalculators';
 
-export const isCashInOperation = (operation: InputData): boolean => {
-  return operation.type === 'cash_in';
-};
+export const isCashInOperation = (operation: InputData): boolean =>
+  operation.type === 'cash_in';
 
-export const isCashOutOperation = (operation: InputData): boolean => {
-  return operation.type === 'cash_out';
-};
+export const isCashOutOperation = (operation: InputData): boolean =>
+  operation.type === 'cash_out';
 
 export const processCashInOperation = (
   amount: number,
@@ -73,13 +71,12 @@ export const handleCashInOperation = (
   operation: InputData,
   cashInConfig: CashInOperationConfig,
   cashOutHistory: CashOutHistory,
-): ProcessedOperationResult => {
-  return processCashInOperation(
+): ProcessedOperationResult =>
+  processCashInOperation(
     operation.operation.amount,
     cashInConfig,
     cashOutHistory,
   );
-};
 
 export const handleCashOutOperation = (
   operation: InputData,

@@ -23,10 +23,7 @@ export const getCashOutConfig = (
 export const getCashInConfig = (
   operation: InputData,
   cashInConfig: CashInOperationConfig,
-): CashInOperationConfig | null => {
-  return operation.type === 'cash_in' &&
-    cashInConfig &&
-    'maxAmount' in cashInConfig
+): CashInOperationConfig | null =>
+  operation.type === 'cash_in' && cashInConfig && 'maxAmount' in cashInConfig
     ? cashInConfig
     : null;
-};

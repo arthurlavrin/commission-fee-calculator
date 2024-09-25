@@ -9,12 +9,15 @@ import {
 } from './types';
 import { commissionFeesConfigApi } from './api';
 
-const fetchWithHandling = async <T>(url: string): Promise<T> => {
+const fetchWithHandling = async <T>(
+  url: string,
+  retries = 3,
+  attempt = 0,
+): Promise<T> => {
   try {
     const response = await fetch(url);
 
     if (!response.ok) {
-      // noinspection ExceptionCaughtLocallyJS
       throw new Error(
         `Failed to fetch data from ${url}: ${response.statusText}`,
       );
@@ -22,7 +25,15 @@ const fetchWithHandling = async <T>(url: string): Promise<T> => {
 
     return (await response.json()) as T;
   } catch (error) {
-    console.error(`Error fetching data from ${url}:`, error);
+    console.error(
+      `Error fetching data from ${url} (attempt ${attempt + 1}):`,
+      error,
+    );
+
+    if (attempt < retries - 1) {
+      return fetchWithHandling<T>(url, retries, attempt + 1);
+    }
+
     throw error;
   }
 };

@@ -7,9 +7,7 @@ export const calculateCashOutLegalFee = (
   amount: number,
   percents: number,
   minAmount: number,
-): number => {
-  return roundUp(Math.max(amount * percents, minAmount));
-};
+): number => roundUp(Math.max(amount * percents, minAmount));
 
 export const calculateCashInFee = (
   amount: number,
